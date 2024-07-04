@@ -12,8 +12,8 @@ from typing import Optional, List, BinaryIO, Dict
 handler = LogHandler()
 log = logging.getLogger(__name__)
 log.addHandler(handler)
-log.setLevel(logging.INFO)
-# log.setLevel(logging.DEBUG)
+# log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 # log.setLevel(logging.ERROR)
 
 
@@ -90,7 +90,8 @@ class VM:
         # not using isInstance because it's so freaking slow
         while not 0x0e <= current_instruction.opcode <= 0x11 and current_instruction.opcode != 0x27:
             # While instruction isn't a return instructions
-            log.debug(f"@{hex(current_instruction.address)}")
+            log.debug("\n")
+            log.debug(f"@{hex(current_instruction.address)}: {current_instruction.prefix}-{current_instruction.suffix}")
 
             current_instruction.print_instruction()
 
@@ -160,11 +161,13 @@ class VM:
 
         if method_offset := self.method_data[method_id].code_off.value:
             self.call_stack.append(method_id)
+            tmp_method = self.dex.method_ids[method_id]
+            log.debug(f"Calling Method: {tmp_method.class_name} {tmp_method.method_name}" )
             ret = self.call_method_at_offset(method_offset, method_args, execution_flags)
             self.call_stack.pop()
             return ret
         elif (True):
-            pass 
+            pass
             # TODO: put multidex code here
 
 

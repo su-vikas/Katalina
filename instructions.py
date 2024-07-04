@@ -7,7 +7,7 @@ handler = LogHandler()
 log = logging.getLogger(__name__)
 log.addHandler(handler)
 # log.setLevel(logging.INFO)
-log.setLevel(logging.ERROR)
+log.setLevel(logging.DEBUG)
 
 
 
@@ -295,6 +295,7 @@ class Const(Instruction):
 
         # redistribute across 2 registers for wide movement
         if self.opcode in [0x16, 0x17, 0x18, 0x19]:
+        # if self.opcode in [0x16, 0x18, 0x19]:
             v[self.vA + 1] = v[self.vA] & 0xFFFFFFFF
             v[self.vA] >>= 32
         return super().execute(memory, v)
@@ -741,13 +742,21 @@ class ArrayOp(Instruction):
         log.debug("%s-%s v%s v%s @v%s" % (self.prefix, self.suffix, self.vA, self.vB, self.vC))
 
     def execute(self, memory, v):
-        if 0x44 <= self.opcode <= 0x4a:
+        if self.opcode == 0x45:         # aget-wide
+            tmp = v[self.vB][v[self.vC]]
+            v[self.vA] = tmp >> 32
+            v[self.vA + 1] = tmp & 0xFFFFFFFF
+
+        elif self.opcode == 0x44 or 0x46 <= self.opcode <= 0x4a:
             try:
                 v[self.vA] = v[self.vB][v[self.vC]]
             except TypeError as te:
                 v[self.vA] = None
 
-        elif 0x4b <= self.opcode <= 0x51:
+        if self.opcode == 0x4c:     # aput-wide
+            v[self.vB][v[self.vC]] = (v[self.vA] << 32)  + v[self.vA+1]
+
+        elif self.opcode == 0x4b or 0x4d <= self.opcode <= 0x51:
             v[self.vB][v[self.vC]] = v[self.vA]
         return super().execute(memory, v)
 

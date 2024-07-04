@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import logging
+import sys
 from types import FrameType
 
 from vm import VM
@@ -15,8 +16,7 @@ import itertools
 
 handler = LogHandler()
 log = logging.getLogger("main")
-log.setLevel(logging.INFO)
-log.addHandler(handler)
+log.setLevel(logging.DEBUG)
 
 class TimeoutException(Exception):
     pass
@@ -54,8 +54,10 @@ def call_methods_by_name(vm: VM, name: str, method_args: Optional[List],
 
 def call_method_by_fqcn(vm: VM, full_name: str, method_args: Optional[list]) -> None:
     for index, method in enumerate(vm.dex.method_ids):
+        # print(f"{method.class_name}->{method.method_name} {method.proto_desc}")
         if f"{method.class_name}->{method.method_name}" not in full_name:
             continue  # Fast fail
+
 
         if not vm.method_data.get(index, None):
             log.warning(f"Did not generate metadata for {full_name}")
@@ -186,6 +188,8 @@ def main():
                 handler.setFormatter(formatter)
 
     if args.execute:
+        # from pudb import set_trace; set_trace()
+
         method_name = args.execute[0]
         parameter_string = args.execute[1]
         parameters = parameter_string.split(",")
